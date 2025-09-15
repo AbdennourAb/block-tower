@@ -175,79 +175,12 @@ class GamePainter extends CustomPainter {
       return;
     }
 
-    // Create paint for the block
+    // Create solid fill paint and draw an exact rectangle (no rounding, no shadows)
     final paint = Paint()
       ..color = block.color
       ..style = PaintingStyle.fill;
 
-    // Draw enhanced shadow with gradient effect (optimized for performance)
-    final shadowOffset = 3.0;
-    final shadowBlur = 6.0;
-    
-    // Reduce shadow layers for very small blocks to improve performance
-    final shadowLayers = block.width < 30 ? 1 : (block.width < 60 ? 2 : 3);
-    
-    // Multiple shadow layers for depth
-    for (int i = 0; i < shadowLayers; i++) {
-      final offset = shadowOffset * (i + 1) / shadowLayers;
-      final opacity = 0.2 - (i * 0.05);
-      final shadowRect = rect.translate(offset, offset);
-      final shadowPaint = Paint()
-        ..color = Colors.black.withOpacity(opacity)
-        ..maskFilter = MaskFilter.blur(BlurStyle.normal, shadowBlur - i);
-      
-      canvas.drawRRect(
-        RRect.fromRectAndRadius(shadowRect, const Radius.circular(6)),
-        shadowPaint,
-      );
-    }
-
-    // Create gradient paint for the main block
-    final gradientPaint = Paint()
-      ..shader = LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors: [
-          block.color.withOpacity(0.9),
-          block.color,
-          block.color.withOpacity(0.8),
-        ],
-        stops: const [0.0, 0.5, 1.0],
-      ).createShader(rect);
-
-    // Draw the main block with gradient
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(rect, const Radius.circular(6)),
-      gradientPaint,
-    );
-
-    // Draw highlight on top edge
-    final highlightRect = Rect.fromLTWH(rect.left, rect.top, rect.width, rect.height * 0.3);
-    final highlightPaint = Paint()
-      ..shader = LinearGradient(
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-        colors: [
-          Colors.white.withOpacity(0.3),
-          Colors.white.withOpacity(0.0),
-        ],
-      ).createShader(highlightRect);
-
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(highlightRect, const Radius.circular(6)),
-      highlightPaint,
-    );
-
-    // Draw subtle outline
-    final outlinePaint = Paint()
-      ..color = Colors.white.withOpacity(0.15)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.5;
-
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(rect, const Radius.circular(6)),
-      outlinePaint,
-    );
+    canvas.drawRect(rect, paint);
 
     // Draw level text on block with better styling
     if (block.width > 50) { // Only show text if block is wide enough
@@ -615,21 +548,19 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
       return;
     }
     
-    // Calculate score for this placement
-    final previousBlock = gameState.placedBlocks.isNotEmpty ? gameState.placedBlocks.last : null;
-    final blockScore = gameState.calculateBlockScore(trimmedBlock, previousBlock);
-    final newScore = gameState.score + blockScore;
+    // Advance level and set score equal to current tower level
+    final newLevel = gameState.currentLevel + 1;
+    final newScore = newLevel;
     final newBestScore = newScore > gameState.bestScore ? newScore : gameState.bestScore;
     
     // Calculate camera offset for levels 9+ (as per game brief)
-    final newLevel = gameState.currentLevel + 1;
     double newCameraOffset = gameState.cameraOffsetY;
     
     if (newLevel >= GameState.cameraActivationLevel) {
       // Move camera down by exactly one block height per level after level 8
-      // This keeps the current action centered as per the brief
+      // Positive offset pushes rendering downward on screen
       final levelsAboveEight = newLevel - (GameState.cameraActivationLevel - 1);
-      newCameraOffset = -levelsAboveEight * GameState.blockHeight;
+      newCameraOffset = levelsAboveEight * GameState.blockHeight;
     }
     
     setState(() {
