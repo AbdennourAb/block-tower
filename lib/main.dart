@@ -182,61 +182,7 @@ class GamePainter extends CustomPainter {
 
     canvas.drawRect(rect, paint);
 
-    // Draw level text on block with better styling
-    if (block.width > 50) { // Only show text if block is wide enough
-      final fontSize = math.min(14.0, block.width / 10);
-      
-      // Draw text shadow first
-      final shadowTextPainter = TextPainter(
-        text: TextSpan(
-          text: 'L${block.level}',
-          style: TextStyle(
-            color: Colors.black.withOpacity(0.5),
-            fontSize: fontSize,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        textDirection: TextDirection.ltr,
-      );
-      
-      shadowTextPainter.layout();
-      shadowTextPainter.paint(
-        canvas,
-        Offset(
-          rect.center.dx - shadowTextPainter.width / 2 + 1,
-          rect.center.dy - shadowTextPainter.height / 2 + 1,
-        ),
-      );
-      
-      // Draw main text
-      final textPainter = TextPainter(
-        text: TextSpan(
-          text: 'L${block.level}',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: fontSize,
-            fontWeight: FontWeight.bold,
-            shadows: [
-              Shadow(
-                color: Colors.black.withOpacity(0.3),
-                offset: const Offset(1, 1),
-                blurRadius: 2,
-              ),
-            ],
-          ),
-        ),
-        textDirection: TextDirection.ltr,
-      );
-      
-      textPainter.layout();
-      textPainter.paint(
-        canvas,
-        Offset(
-          rect.center.dx - textPainter.width / 2,
-          rect.center.dy - textPainter.height / 2,
-        ),
-      );
-    }
+    // Level text removed for cleaner look
   }
 
   @override
@@ -294,40 +240,13 @@ class HomeScreen extends StatelessWidget {
               
               // Subtitle
               Text(
-                'Physics-based block stacking game',
+                'Block stacking game',
                 style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                   color: Colors.grey[400],
                 ),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 40),
-              
-              // Foundation block preview (purple base block)
-              Container(
-                width: 180, // Starting width as per brief
-                height: 40,  // Block height as per brief
-                decoration: BoxDecoration(
-                  color: Colors.purple,
-                  borderRadius: BorderRadius.circular(4),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.3),
-                      blurRadius: 8,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Center(
-                  child: Text(
-                    'Foundation Block', 
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 40),
+              const SizedBox(height: 60),
               
               // Start Game Button
               ElevatedButton(
@@ -356,19 +275,6 @@ class HomeScreen extends StatelessWidget {
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                   ),
-                ),
-              ),
-              const SizedBox(height: 20),
-              
-              // Instructions
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 40),
-                child: Text(
-                  'Tap to drop blocks.\nOnly overlapping portion survives.\nPrecision determines your score!',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Colors.grey[500],
-                  ),
-                  textAlign: TextAlign.center,
                 ),
               ),
             ],
@@ -431,7 +337,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
     ).animate(_animationController);
     
     _animation.addListener(() {
-      if (gameState.movingBlock != null) {
+      if (gameState.movingBlock != null && !gameState.isGameOver) {
         _updateMovingBlockPosition();
       }
     });
@@ -509,7 +415,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
   }
 
   void _updateMovingBlockPosition() {
-    if (gameState.movingBlock == null) return;
+    if (gameState.movingBlock == null || gameState.isGameOver) return;
     
     final screenWidth = MediaQuery.of(context).size.width;
     final blockWidth = gameState.movingBlock!.width;
@@ -548,9 +454,10 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
       return;
     }
     
-    // Advance level and set score equal to current tower level
+    // Advance level and set score equal to current tower level minus 1
+    // (no points for first placed block)
     final newLevel = gameState.currentLevel + 1;
-    final newScore = newLevel;
+    final newScore = math.max(0, newLevel - 1);
     final newBestScore = newScore > gameState.bestScore ? newScore : gameState.bestScore;
     
     // Calculate camera offset for levels 9+ (as per game brief)
@@ -676,9 +583,9 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                         icon: const Icon(Icons.arrow_back, color: Colors.white),
                       ),
                       
-                      // Level counter
+                      // Score display
                       Text(
-                        'Level ${gameState.currentLevel}',
+                        'Score: ${gameState.score}',
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 24,
@@ -686,54 +593,37 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                         ),
                       ),
                       
-                  // Size percentage bar (responsive width)
-                  Container(
-                    width: math.min(100, MediaQuery.of(context).size.width * 0.25),
-                    height: 8,
-                    decoration: BoxDecoration(
-                      color: Colors.grey[700],
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: FractionallySizedBox(
-                      alignment: Alignment.centerLeft,
-                      widthFactor: math.max(0.05, gameState.currentBlockWidth / math.max(GameState.startingWidth, MediaQuery.of(context).size.width * 0.8)),
-                      child: Container(
+                      // Best score with styling
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                         decoration: BoxDecoration(
-                          color: gameState.currentBlockWidth < 50 ? Colors.red : 
-                                (gameState.currentBlockWidth < 100 ? Colors.orange : Colors.green),
-                          borderRadius: BorderRadius.circular(4),
+                          color: Colors.orange.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(15),
+                          border: Border.all(color: Colors.orange.withOpacity(0.3), width: 1),
                         ),
-                      ),
-                    ),
-                  ),
-                    ],
-                  ),
-                  
-                  const SizedBox(height: 8),
-                  
-                  // Bottom row: Score and Best Score
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        'Score: ${gameState.score}',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(width: 20),
-                      Text(
-                        'Best: ${gameState.bestScore}',
-                        style: TextStyle(
-                          color: Colors.orange,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.emoji_events,
+                              color: Colors.orange,
+                              size: 16,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              'Best: ${gameState.bestScore}',
+                              style: TextStyle(
+                                color: Colors.orange,
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
                   ),
+                  
                 ],
               ),
             ),
@@ -780,54 +670,82 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                               child: Column(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Text(
-                                    'GAME OVER',
-                                    style: TextStyle(
-                                      color: Colors.red,
-                                      fontSize: 32,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 16),
-                                  
-                                  Text(
-                                    'Level ${gameState.currentLevel}',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 24,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  
-                                  Text(
-                                    'Final Score: ${gameState.score}',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 20,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  
                                   if (gameState.score == gameState.bestScore && gameState.score > 0)
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                                      decoration: BoxDecoration(
+                                        gradient: LinearGradient(
+                                          colors: [
+                                            Colors.amber.withOpacity(0.8),
+                                            Colors.orange.withOpacity(0.6),
+                                            Colors.amber.withOpacity(0.8),
+                                          ],
+                                        ),
+                                        borderRadius: BorderRadius.circular(20),
+                                        border: Border.all(color: Colors.amber, width: 2),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.amber.withOpacity(0.3),
+                                            blurRadius: 20,
+                                            spreadRadius: 5,
+                                          ),
+                                        ],
+                                      ),
+                                      child: Column(
+                                        children: [
+                                          Text(
+                                            '👑',
+                                            style: TextStyle(fontSize: 32),
+                                          ),
+                                          const SizedBox(height: 8),
+                                          Text(
+                                            'BEST SCORE',
+                                            style: TextStyle(
+                                              color: Colors.black,
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.bold,
+                                              letterSpacing: 2,
+                                            ),
+                                            textAlign: TextAlign.center,
+                                          ),
+                                          Text(
+                                            '${gameState.score}',
+                                            style: TextStyle(
+                                              color: Colors.black,
+                                              fontSize: 36,
+                                              fontWeight: FontWeight.w900,
+                                              shadows: [
+                                                Shadow(
+                                                  color: Colors.white.withOpacity(0.5),
+                                                  offset: Offset(1, 1),
+                                                  blurRadius: 2,
+                                                ),
+                                              ],
+                                            ),
+                                            textAlign: TextAlign.center,
+                                          ),
+                                        ],
+                                      ),
+                                    )
+                                  else ...[
                                     Text(
-                                      '🏆 NEW BEST SCORE! 🏆',
+                                      'GAME OVER',
                                       style: TextStyle(
-                                        color: Colors.orange,
-                                        fontSize: 16,
+                                        color: Colors.red,
+                                        fontSize: 32,
                                         fontWeight: FontWeight.bold,
                                       ),
-                                      textAlign: TextAlign.center,
                                     ),
-                                  
-                                  if (gameState.bestScore > 0 && gameState.score != gameState.bestScore)
+                                    const SizedBox(height: 16),
                                     Text(
-                                      'Best Score: ${gameState.bestScore}',
+                                      'Score: ${gameState.score}',
                                       style: TextStyle(
-                                        color: Colors.orange,
-                                        fontSize: 16,
+                                        color: Colors.white,
+                                        fontSize: 24,
+                                        fontWeight: FontWeight.bold,
                                       ),
                                     ),
+                                  ],
                                   
                                   const SizedBox(height: 24),
                                   
@@ -883,66 +801,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                         ),
                       ),
                     
-                    // Debug overlay
-                    Positioned(
-                      top: 10,
-                      left: 10,
-                      child: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.7),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              gameState.isGameOver ? 'GAME OVER' : '✅ GAME COMPLETE!',
-                              style: TextStyle(
-                                color: gameState.isGameOver ? Colors.red : Colors.green,
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            Text(
-                              'Blocks: ${gameState.placedBlocks.length}',
-                              style: TextStyle(color: Colors.white, fontSize: 10),
-                            ),
-                            Text(
-                              'Moving: ${gameState.movingBlock != null ? "Yes" : "No"}',
-                              style: TextStyle(color: Colors.white, fontSize: 10),
-                            ),
-                            Text(
-                              'Level: ${gameState.currentLevel}',
-                              style: TextStyle(color: Colors.white, fontSize: 10),
-                            ),
-                            Text(
-                              'Width: ${gameState.currentBlockWidth.toStringAsFixed(1)}',
-                              style: TextStyle(color: Colors.white, fontSize: 10),
-                            ),
-                            Text(
-                              'Score: ${gameState.score}',
-                              style: TextStyle(color: Colors.white, fontSize: 10),
-                            ),
-                            Text(
-                              'Camera: ${gameState.cameraOffsetY.toStringAsFixed(1)}',
-                              style: TextStyle(color: Colors.white, fontSize: 10),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              gameState.isGameOver ? 'GAME OVER' : 'TAP TO PLACE BLOCK',
-                              style: TextStyle(
-                                color: gameState.isGameOver 
-                                  ? Colors.red 
-                                  : (gameState.movingBlock != null ? Colors.yellow : Colors.grey),
-                                fontSize: 8,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
+                    // Debug overlay removed
                   ],
                 ),
               ),
