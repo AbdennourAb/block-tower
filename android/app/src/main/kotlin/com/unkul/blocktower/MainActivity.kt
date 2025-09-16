@@ -1,4 +1,4 @@
-package com.example.block_tower
+package com.unkul.blocktower
 
 import io.flutter.embedding.android.FlutterActivity
 
