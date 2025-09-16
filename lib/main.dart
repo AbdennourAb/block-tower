@@ -90,9 +90,9 @@ class GameState {
   // Game constants
   static const double blockHeight = 40.0;
   static const double startingWidth = 180.0;
-  static const Color foundationColor = Colors.purple;
+  static const Color foundationColor = Color(0xFF8B4513); // Earthy brown foundation
   static const double minBlockWidth = 1.0; // Minimum width before game over
-  static const int cameraActivationLevel = 9; // Level at which camera starts moving
+  static const int cameraActivationLevel = 12; // Level at which camera starts moving
   
   // Color palette for blocks (10 colors as per brief)
   static const List<Color> blockColors = [
@@ -181,6 +181,17 @@ class GamePainter extends CustomPainter {
       ..style = PaintingStyle.fill;
 
     canvas.drawRect(rect, paint);
+    
+    // Special styling for foundation block (level 0) to make it unique
+    if (block.level == 0) {
+      // Add a subtle border pattern to distinguish foundation block
+      final borderPaint = Paint()
+        ..color = Colors.white.withOpacity(0.3)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2;
+      
+      canvas.drawRect(rect, borderPaint);
+    }
 
     // Level text removed for cleaner look
   }
@@ -236,7 +247,7 @@ class HomeScreen extends StatelessWidget {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 8),
               
               // Subtitle
               Text(
@@ -460,14 +471,14 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
     final newScore = math.max(0, newLevel - 1);
     final newBestScore = newScore > gameState.bestScore ? newScore : gameState.bestScore;
     
-    // Calculate camera offset for levels 9+ (as per game brief)
+    // Calculate camera offset for levels 12+ (allow more height before transition)
     double newCameraOffset = gameState.cameraOffsetY;
     
     if (newLevel >= GameState.cameraActivationLevel) {
-      // Move camera down by exactly one block height per level after level 8
+      // Move camera down by exactly one block height per level after level 11
       // Positive offset pushes rendering downward on screen
-      final levelsAboveEight = newLevel - (GameState.cameraActivationLevel - 1);
-      newCameraOffset = levelsAboveEight * GameState.blockHeight;
+      final levelsAboveEleven = newLevel - (GameState.cameraActivationLevel - 1);
+      newCameraOffset = levelsAboveEleven * GameState.blockHeight;
     }
     
     setState(() {

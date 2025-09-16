@@ -1,5 +1,5 @@
 name: block_tower
-description: A physics-based block stacking game where precision placement determines survival.
+description: A Block stacking game where precision placement determines survival.
 publish_to: 'none'
 version: 1.0.0+1
 
