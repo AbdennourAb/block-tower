@@ -249,13 +249,37 @@ class HomeScreen extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               
-              // Subtitle
-              Text(
-                'Block stacking game',
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: Colors.grey[400],
-                ),
-                textAlign: TextAlign.center,
+              // Visual symbols instead of text
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    width: 20,
+                    height: 8,
+                    decoration: BoxDecoration(
+                      color: Colors.orange,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  Container(
+                    width: 16,
+                    height: 8,
+                    decoration: BoxDecoration(
+                      color: Colors.green,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  Container(
+                    width: 12,
+                    height: 8,
+                    decoration: BoxDecoration(
+                      color: Colors.blue,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 60),
               
@@ -280,12 +304,10 @@ class HomeScreen extends StatelessWidget {
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                child: const Text(
-                  'Start Game',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
+                child: const Icon(
+                  Icons.play_arrow,
+                  size: 32,
+                  color: Colors.white,
                 ),
               ),
             ],
@@ -595,13 +617,24 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                       ),
                       
                       // Score display
-                      Text(
-                        'Score: ${gameState.score}',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.star,
+                            color: Colors.yellow,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            '${gameState.score}',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
                       ),
                       
                       // Best score with styling
@@ -622,7 +655,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                             ),
                             const SizedBox(width: 4),
                             Text(
-                              'Best: ${gameState.bestScore}',
+                              '${gameState.bestScore}',
                               style: TextStyle(
                                 color: Colors.orange,
                                 fontSize: 14,
@@ -708,17 +741,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                                             '👑',
                                             style: TextStyle(fontSize: 32),
                                           ),
-                                          const SizedBox(height: 8),
-                                          Text(
-                                            'BEST SCORE',
-                                            style: TextStyle(
-                                              color: Colors.black,
-                                              fontSize: 18,
-                                              fontWeight: FontWeight.bold,
-                                              letterSpacing: 2,
-                                            ),
-                                            textAlign: TextAlign.center,
-                                          ),
+                                          const SizedBox(height: 16),
                                           Text(
                                             '${gameState.score}',
                                             style: TextStyle(
@@ -739,22 +762,30 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                                       ),
                                     )
                                   else ...[
-                                    Text(
-                                      'GAME OVER',
-                                      style: TextStyle(
-                                        color: Colors.red,
-                                        fontSize: 32,
-                                        fontWeight: FontWeight.bold,
-                                      ),
+                                    Icon(
+                                      Icons.sentiment_dissatisfied,
+                                      color: Colors.red,
+                                      size: 48,
                                     ),
                                     const SizedBox(height: 16),
-                                    Text(
-                                      'Score: ${gameState.score}',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 24,
-                                        fontWeight: FontWeight.bold,
-                                      ),
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Icon(
+                                          Icons.star,
+                                          color: Colors.yellow,
+                                          size: 28,
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          '${gameState.score}',
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 24,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ],
                                   
@@ -773,12 +804,10 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                                               borderRadius: BorderRadius.circular(8),
                                             ),
                                           ),
-                                          child: const Text(
-                                            'PLAY AGAIN',
-                                            style: TextStyle(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.bold,
-                                            ),
+                                          child: const Icon(
+                                            Icons.refresh,
+                                            size: 24,
+                                            color: Colors.white,
                                           ),
                                         ),
                                       ),
@@ -794,12 +823,10 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                                               borderRadius: BorderRadius.circular(8),
                                             ),
                                           ),
-                                          child: const Text(
-                                            'MENU',
-                                            style: TextStyle(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.bold,
-                                            ),
+                                          child: const Icon(
+                                            Icons.home,
+                                            size: 24,
+                                            color: Colors.white,
                                           ),
                                         ),
                                       ),
